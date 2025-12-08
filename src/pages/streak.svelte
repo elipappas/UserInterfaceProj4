@@ -1,49 +1,90 @@
 <script>
-  import { streak } from '../data/userdata.js';
-  const milestones = [3, 7, 14, 30];
-  $: nextMilestone = milestones.find(m => $streak < m) || milestones[milestones.length-1];
-  $: progress = Math.min($streak / nextMilestone, 1);
+  import { log, getStreak } from '../data/userdata.js';
+  let logData = [];
+  const unsubscribe = log.subscribe(value => { logData = value; });
+  import { onMount } from 'svelte';
+  onMount(() => unsubscribe);
+  $: currentStreak = getStreak(logData);
 </script>
 
 <h1>Streak Tracker</h1>
-<div class="streak-info">
-  <span class="streak-count">🔥 {$streak} day{$streak === 1 ? '' : 's'}</span>
-  <div class="progress-bar">
-    <div class="progress" style="width: {progress * 100}%"></div>
-  </div>
-  <div class="milestone-label">
-    Next award: <b>{nextMilestone}</b> days
+<div class="streak-banner">Current Streak: {currentStreak} day{currentStreak === 1 ? '' : 's'}</div>
+
+<h2>Task Log</h2>
+<div class="log-table-area">
+  <div class="log-table-wrapper">
+    <table class="log-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Task</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each logData as entry (entry.date)}
+          <tr>
+            <td>{entry.date}</td>
+            <td>{entry.task}</td>
+            <td>{entry.completed ? '✅' : '❌'}</td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
   </div>
 </div>
 
 <style>
-  .streak-info {
+  h1 {
+    color: white;
+    margin-bottom: 1rem;
+  }
+  .streak-banner {
+    font-size: 1.3rem;
+    color: #ffd700;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+  .log-table-area {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    height: 400px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-top: 2rem;
-    gap: 1rem;
+    justify-content: flex-start;
+    background: transparent;
+    box-sizing: border-box;
   }
-  .streak-count {
-    font-size: 2rem;
-    color: #ff9800;
-    font-weight: bold;
+  .log-table-wrapper {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    max-height: 350px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #0002;
+    margin-bottom: 2rem;
+    background: transparent;
   }
-  .progress-bar {
-    width: 250px;
-    height: 20px;
-    background: #eee;
-    border-radius: 10px;
+  .log-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #222;
+    color: #fff;
+    border-radius: 8px;
     overflow: hidden;
-    border: 2px solid #ff9800;
   }
-  .progress {
-    height: 100%;
-    background: linear-gradient(90deg, #ffd700, #ff9800);
-    transition: width 0.3s;
+  .log-table th, .log-table td {
+    padding: 0.7em 1em;
+    border-bottom: 1px solid #444;
+    text-align: left;
   }
-  .milestone-label {
-    font-size: 1rem;
-    color: #555;
+  .log-table th {
+    background: #333;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .log-table tr:last-child td {
+    border-bottom: none;
   }
 </style>

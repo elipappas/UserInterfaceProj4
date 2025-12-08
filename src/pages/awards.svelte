@@ -1,16 +1,20 @@
 <script>
-  import { streak } from '../data/userdata.js';
-
+  import { log, getStreak } from '../data/userdata.js';
+  let logData = [];
+  const unsubscribe = log.subscribe(value => { logData = value; });
+  import { onMount } from 'svelte';
+  onMount(() => unsubscribe);
   // Define award milestones
   const milestones = [3, 7, 14, 30];
+  $: streakValue = getStreak(logData);
 </script>
 
 <h1>Awards</h1>
 <div class="awards-container">
   {#each milestones as milestone}
-    <div class="award-badge {$streak >= milestone ? 'earned' : ''}">
+    <div class="award-badge {streakValue >= milestone ? 'earned' : ''}">
       <span>🔥 {milestone}-Day Streak</span>
-      {#if $streak >= milestone}
+      {#if streakValue >= milestone}
         <span class="check">✔️</span>
       {/if}
     </div>

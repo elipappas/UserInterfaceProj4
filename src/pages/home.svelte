@@ -1,9 +1,14 @@
 <script>
   import { onMount } from "svelte";
-  import { easy_task_list, medium_task_list, hard_task_list, difficulty, username, date, days_completed, task_completed_today, addCompletedDay, incrementStreak, streak, decrementStreak } from "../data/userdata.js";
+  import { easy_task_list, medium_task_list, hard_task_list, difficulty, username, task_completed_today, log, getStreak } from "../data/userdata.js";
 
+  const todayISO = new Date().toISOString().slice(0, 10);
   let task_of_day = "";
   let lastTaskDate = "";
+
+  let logData = [];
+  const unsubscribe = log.subscribe(value => { logData = value; });
+  onMount(() => unsubscribe);
 
   function pickTask(diff) {
     let list = diff === "easy" ? easy_task_list : diff === "medium" ? medium_task_list : hard_task_list;
@@ -12,13 +17,10 @@
 
   function setTaskForToday(diff) {
     task_of_day = pickTask(diff);
-    lastTaskDate = date;
+    lastTaskDate = todayISO;
     localStorage.setItem("task_of_day", task_of_day);
-    localStorage.setItem("task_date", date);
+    localStorage.setItem("task_date", todayISO);
     localStorage.setItem("task_difficulty", diff);
-    if ($task_completed_today === true) {
-      decrementStreak();
-    }
     task_completed_today.set(false); // Reset completion when new task is set
   }
 
@@ -26,7 +28,7 @@
     const storedDate = localStorage.getItem("task_date");
     const storedTask = localStorage.getItem("task_of_day");
     const storedDiff = localStorage.getItem("task_difficulty") || $difficulty;
-    if (storedDate === date && storedTask && storedDiff === $difficulty) {
+    if (storedDate === todayISO && storedTask && storedDiff === $difficulty) {
       task_of_day = storedTask;
       lastTaskDate = storedDate;
     } else {
@@ -34,25 +36,34 @@
     }
   });
 
-  $: if ($difficulty && lastTaskDate === date && localStorage.getItem("task_difficulty") !== $difficulty) {
+  $: if ($difficulty && lastTaskDate === todayISO && localStorage.getItem("task_difficulty") !== $difficulty) {
     setTaskForToday($difficulty);
+  }
+
+
+  function updateLog(completed) {
+    // Remove any existing entry for today
+    let filtered = logData.filter(entry => entry.date !== todayISO);
+    // Add new entry for today
+    filtered.push({ date: todayISO, task: task_of_day, completed });
+    // Sort by date ascending
+    filtered = filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    log.set(filtered);
   }
 
   function toggleTask() {
     task_completed_today.update(value => {
-      if (!value) {
-        addCompletedDay(date);
-        incrementStreak();
-        return true;
-      } else {
-        return false;
-      }
+      const newValue = !value;
+      updateLog(newValue);
+      return newValue;
     });
   }
+
+  $: streakValue = getStreak(logData);
 </script>
 
 <div>
-  <h2>{date}</h2>
+  <h2>{todayISO}</h2>
   <h1 class="task" class:completed={$task_completed_today}>
     <input
       type="checkbox"
@@ -62,7 +73,7 @@
     />
     {task_of_day}
   </h1>
-  <div class="streak-display">Streak: {$streak} days</div>
+  <div class="streak-display">Streak: {streakValue} day{streakValue === 1 ? '' : 's'}</div>
 </div>
 
 <style>

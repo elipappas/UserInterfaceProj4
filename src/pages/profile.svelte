@@ -38,7 +38,7 @@
   </div>
   <div class="profile-row">
     <span class="label">Username:</span>
-    <span class="value">{username}</span>
+    <span class="value">{$username}</span>
   </div>
   <div class="profile-row">
     <span class="label">Task Difficulty:</span>
