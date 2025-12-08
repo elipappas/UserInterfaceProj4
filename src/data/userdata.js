@@ -1,65 +1,21 @@
 import { writable } from 'svelte/store';
 
-// Log initialization with auto-reset of the last 4 days
 const today = new Date();
-today.setHours(0,0,0,0);
-const todayStr = today.toISOString().slice(0,10);
-const d1 = new Date(today); d1.setDate(d1.getDate() - 1);
-const d2 = new Date(today); d2.setDate(d2.getDate() - 2);
-const d3 = new Date(today); d3.setDate(d3.getDate() - 3);
-const d1Str = d1.toISOString().slice(0,10);
-const d2Str = d2.toISOString().slice(0,10);
-const d3Str = d3.toISOString().slice(0,10);
+today.setHours(0, 0, 0, 0);
+const makeDay = offset => {
+  const d = new Date(today);
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().slice(0, 10);
+};
 
-let storedLog = [];
-try {
-  const fromStorage = localStorage.getItem('task_log');
-  if (fromStorage) {
-    storedLog = JSON.parse(fromStorage);
-  }
-} catch (e) {
-  storedLog = [];
-}
+// Hardcoded fake log: 3 completed past days (today is added by the app)
+export const initialLog = [
+  { date: makeDay(-3), task: 'compliment a friend', completed: true },
+  { date: makeDay(-2), task: 'text someone', completed: true },
+  { date: makeDay(-1), task: "ask for someone's name", completed: true }
+];
 
-// Ensure the last 3 days are completed and today is incomplete
-function normalizeRecentLog(entries) {
-  const byDate = new Map(entries.map(e => [e.date, e]));
-
-  const ensureEntry = (dateStr, completedDefault) => {
-    const existing = byDate.get(dateStr);
-    if (existing) {
-      existing.completed = completedDefault;
-      return existing;
-    }
-    return { date: dateStr, task: '', completed: completedDefault };
-  };
-
-  const normalized = [
-    ensureEntry(d3Str, true),
-    ensureEntry(d2Str, true),
-    ensureEntry(d1Str, true),
-    ensureEntry(todayStr, false)
-  ];
-
-  // Keep any other historical entries
-  for (const e of entries) {
-    if (![d3Str, d2Str, d1Str, todayStr].includes(e.date)) {
-      normalized.push(e);
-    }
-  }
-
-  // Sort by date
-  normalized.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  return normalized;
-}
-
-const initialLog = normalizeRecentLog(storedLog);
 export const log = writable(initialLog);
-
-// Always update localStorage when log changes
-log.subscribe(value => {
-  localStorage.setItem('task_log', JSON.stringify(value));
-});
 
 // Utility: calculate current streak
 export function getStreak(logArr) {
@@ -129,3 +85,13 @@ export const friends = [
   { name: 'bob', streak: 0 },
   { name: 'charlie', streak: 7 }
 ];
+
+function updateLog(completed) {
+  // Remove any existing entry for today
+  let filtered = logData.filter(entry => entry.date !== todayISO);
+  // Add new entry for today
+  filtered.push({ date: todayISO, task: task_of_day, completed });
+  // Sort by date ascending
+  filtered = filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  log.set(filtered);
+}
