@@ -1,0 +1,11 @@
+1. issue: screen time increase
+screen time tracker across all devices
+
+*
+2. issue: loneliness/social anxiety,
+solution: gameified task a day app where it gives you reasons 
+to reach out to strangers or friends
+
+3. issue: individual financial growth
+solution: investing app that pulls together all possibilities and presents 
+them individually for each person
