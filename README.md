@@ -1,6 +1,8 @@
 TO RUN THE SVELTE PROJECT
 ---
-Needs iconify@svelte npm install @iconify/svelte
+Needs iconify@svelte 
+
+npm install @iconify/svelte
 
 DOCUMENTATION
 ---
