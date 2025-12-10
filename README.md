@@ -66,4 +66,6 @@ LINKS
 ---
 Public Hosting: https://elipappas.github.io/UserInterfaceProj4/#/
 
-Demo Video: 
+Demo Video: https://github.com/elipappas/UserInterfaceProj4/blob/main/ui_proj4_demo.zip
+
+for the video you will need to download and unzip from this link ^
